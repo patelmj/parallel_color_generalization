@@ -21,51 +21,26 @@ void color_to_bnw(char *picture_name){
     size_t img_size = width * height * channels;
     unsigned char *new_img = (unsigned char *)malloc(img_size);
 
-
     for(unsigned char *p = img, *pg = new_img; p < img + img_size; p += channels, pg += channels) {
-        
+	double temp_greyscale = 0.0;
+	for(int i = 0; i < channels; i++){
+	    temp_greyscale = temp_greyscale + *(p + i);
+	}
+	temp_greyscale = temp_greyscale/3.0;
+	printf("%i\n",(int)temp_greyscale);
+	for(int i = 0; i < channels; i++){
+	    *(pg + i) = (int)temp_greyscale;
+	}
+	if(channels == 4){
+	    *(pg + 3) = *(p + 3);
+	}
     }
-    
-    for(unsigned char *p = img, *pg = new_img; p < img + img_size; p += channels, pg += channels) {
-        double my_value[] = {0.0,0.0,0.0};
-        if((count % width == 0)||(count % width == width-1)||((count/width) % height == 0)||((count/width) % height == height-1)){ //left
-            //do nothing, edge case
-        }else{
-            //interior
-            for(int i = 0; i < sizeof(my_value); i++){
-                my_value[i] = my_value[i] + *(p + i - (width * channels) - channels) * kernel[0];
-                my_value[i] = my_value[i] + *(p + i - (width * channels)) * kernel[1];
-                my_value[i] = my_value[i] + *(p + i - (width * channels) + channels) * kernel[2];
-                my_value[i] = my_value[i] + *(p + i - channels) * kernel[3];
-                my_value[i] = my_value[i] + *(p + i) * kernel[4];
-                my_value[i] = my_value[i] + *(p + i + (width * channels)) * kernel[5];
-                my_value[i] = my_value[i] + *(p + i + (width * channels) - channels) * kernel[6];
-                my_value[i] = my_value[i] + *(p + i + (width * channels)) * kernel[7];
-                my_value[i] = my_value[i] + *(p + i - (width * channels) + channels) * kernel[8];
-            }
-        }
 
-        for(int i = 0; i < sizeof(my_value); i++){
-            if(my_value[i] > 255.0){
-                my_value[i] = 255;
-            }else if(my_value[i] < 0.0){
-                my_value[i] = 0.0;
-            }
-        }
-
-        *(pg + 0) = (uint8_t)(my_value[0]);//red
-        *(pg + 1) = (uint8_t)(my_value[1]);//blue
-        *(pg + 2) = (uint8_t)(my_value[2]);//green
-    
-        //printf("|| Count: %i || Red: %i | Blue: %i | Green: %i\n", count, *pg, *(pg+1), *(pg+2));
-        if(channels == 4) {
-            *(pg + 3) = *(p + 3);
-        }
-        count++;
-    }
-    stbi_write_jpg("testimageblur.png", width, height, channels, new_img, 100);
-    stbi_image_free(img);stbi_image_free(new_img);
+    stbi_write_jpg("bnwimage.png", width, height, channels, new_img, 100);
+    stbi_image_free(img);
+    stbi_image_free(new_img);
 }
+
 
 int main(int argc, char *argv[]){
     //runner for the black and white code
@@ -79,8 +54,8 @@ int main(int argc, char *argv[]){
         argv++;
     }
     if(strcmp(filename,"")){
-        printf("%s\n", filename);
+        color_to_bnw(filename);
     }
-    color_to_bnw(filename);
+
     return 0;
 }
