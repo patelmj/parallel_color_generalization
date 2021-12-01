@@ -10,8 +10,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
-
-#define NUMBER_OF_COLORS 4
+//old way of doing it. specify args when running the code
+// #define NUMBER_OF_COLORS 3
 #define MAX_COLOR 255
 #define MIN_COLOR 0
 
@@ -20,7 +20,7 @@ struct pixel{
     int index;
 };
 
-void generlize(char *picture_name){
+void generlize(char *picture_name, char *output_filename, int number_of_colors){
     int width, height, channels;
     const char *fname = picture_name;
 
@@ -47,6 +47,7 @@ void generlize(char *picture_name){
     }
 
     //sort the list according to value
+    //FIXME - this can be improved with a diffrent type sort
     struct pixel temp;
     for(int i = 1; i <= (width*height); i++){
         for(int j = i; j >= 0; j--){
@@ -60,14 +61,10 @@ void generlize(char *picture_name){
         }
     }
 
-    // for(int i = 0; i < (width*height); i++){
-    //     printf("index : %i | value : %i\n", mypixels[i].index, mypixels[i].value);
-    // }
-
     int max_value = mypixels[(height*width)-1].value;
     int min_value = mypixels[0].value;
-    int interable_value = (width*height)/NUMBER_OF_COLORS;
-    int grouped_values[NUMBER_OF_COLORS];
+    int interable_value = (width*height)/number_of_colors;
+    int grouped_values[number_of_colors];
 
     int count = 0;
     int average = 0;
@@ -86,9 +83,6 @@ void generlize(char *picture_name){
         }
     }
 
-    // for(int i = 0; i < NUMBER_OF_COLORS; i++){
-    //     printf("grouped colors %i : %i\n", i+1, grouped_values[i]);
-    // }
     count = 0;
     for(int i = 0; i < (height*width); i++){
         for(int j = 0; j < 3; j++){
@@ -102,7 +96,7 @@ void generlize(char *picture_name){
         }
     }
 
-    stbi_write_jpg("generlized_image.png", width, height, channels, new_img, 100);
+    stbi_write_jpg(output_filename, width, height, channels, new_img, 100);
     stbi_image_free(img);
     stbi_image_free(new_img);
 }
@@ -111,17 +105,29 @@ void generlize(char *picture_name){
 int main(int argc, char *argv[]){
     //get the filename. same as blackandwhite.c
     char *filename = (char *)malloc(sizeof(char) * 100);
+    char *output_filename = (char *)malloc(sizeof(char) * 100);
+    int numberofcolors;
     while(*argv){
         if(strcmp(*argv, "-f") == 0 || strcmp(*argv, "--filename") == 0){ //filename exists in arguments
+            if(*(argv+1)){ //filename is there
+                filename = *(argv+1);
+            }
+        }else if(strcmp(*argv, "-c") == 0 || strcmp(*argv, "--colornums") == 0){ //filename exists in arguments
+            if(*(argv+1)){ //filename is there
+                numberofcolors = atoi(*(argv+1));
+            }
+        }else if(strcmp(*argv, "-o") == 0 || strcmp(*argv, "--outputfilename") == 0){ //filename exists in arguments
             if(*(argv+1)){ //filename is there
                 filename = *(argv+1);
             }
         }
         argv++;
     }
-    if(strcmp(filename,"")){
-        generlize(filename);
+    if(strcmp(filename,"") && strcmp(output_filename,"") && numberofcolors > 0){
+        generlize(filename, output_filename, numberofcolors);
+    }else{
+        //filename not given or number of colors is not right
+        printf("args are not correct");
     }
-
-
+    return 0;
 }

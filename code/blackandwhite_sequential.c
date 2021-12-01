@@ -10,7 +10,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
-void color_to_bnw(char *picture_name){
+void color_to_bnw(char *picture_name, char *output_filename){
     int width, height, channels;
     const char *fname = picture_name;
 
@@ -35,7 +35,7 @@ void color_to_bnw(char *picture_name){
         }
     }
 
-    stbi_write_jpg("bnwimage.png", width, height, channels, new_img, 100);
+    stbi_write_jpg(output_filename, width, height, channels, new_img, 100);
     stbi_image_free(img);
     stbi_image_free(new_img);
 }
@@ -44,17 +44,23 @@ void color_to_bnw(char *picture_name){
 int main(int argc, char *argv[]){
     //runner for the black and white code
     char *filename = (char *)malloc(sizeof(char) * 100);
+    char *output_filename = (char *)malloc(sizeof(char) * 100);
     while(*argv){
         if(strcmp(*argv, "-f") == 0 || strcmp(*argv, "--filename") == 0){ //filename exists in arguments
             if(*(argv+1)){ //filename is there
                 filename = *(argv+1);
             }
+        }else if(strcmp(*argv, "-o") == 0 || strcmp(*argv, "--outputfilename") == 0){ //filename exists in arguments
+            if(*(argv+1)){ //filename is there
+                output_filename = *(argv+1);
+            }
         }
         argv++;
     }
-    if(strcmp(filename,"")){
-        color_to_bnw(filename);
+    if(strcmp(filename,"") && strcmp(output_filename, "")){
+        color_to_bnw(filename, output_filename);
+    }else{
+        printf("args are not correct");
     }
-
     return 0;
 }
