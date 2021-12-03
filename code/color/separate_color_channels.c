@@ -12,7 +12,7 @@
 
 //this whole thing can be done in parallel. somthing to lookino with pthreads
 
-void color_to_bnw(char *picture_name, char *output_filename, int colorchanel){
+void separate_color_channels(char *picture_name, char *output_filename, int colorchanel){
     int width, height, channels;
     const char *fname = picture_name;
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
         argv++;
     }
     if(strcmp(filename,"") && strcmp(output_filename, "") && colorchanel >= 0 && colorchanel <= 2){
-        color_to_bnw(filename, output_filename, colorchanel);
+        separate_color_channels(filename, output_filename, colorchanel);
     }else{
         printf("args are not correct");
     }

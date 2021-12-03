@@ -70,7 +70,7 @@ struct pixel* mergeSort(struct pixel *input, int size){
                 leftlist++;
             }
             count++;
-            // printf("%i\n", return_list->value);
+            printf("%i\n", return_list->value);
         }
         return return_list;
     }else if(size == 1){
@@ -107,20 +107,6 @@ void generlize(char *picture_name, char *output_filename, int number_of_colors, 
     }
 
     //sort the list according to value
-    //FIXME - this can be improved with a diffrent type sort
-    //not completly correct anyway. the begining index is not sorted
-    // struct pixel temp;
-    // for(int i = 1; i <= (width*height); i++){
-    //     for(int j = i; j >= 0; j--){
-    //         if(mypixels[j-1].index){ //if value can be compared
-    //             if(mypixels[j].value < mypixels[j-1].value){ //swap values
-    //                 temp = mypixels[j];
-    //                 mypixels[j] = mypixels[j-1];
-    //                 mypixels[j-1] = temp;
-    //             }
-    //         }
-    //     }
-    // }
     struct pixel *sortedmypixels = mergeSort(mypixels, width*height);
 
     // for(int i = 0; i < width*height; i++){

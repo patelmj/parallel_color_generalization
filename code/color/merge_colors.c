@@ -12,7 +12,7 @@
 
 //this whole thing can be done in parallel. somthing to lookino with pthreads
 
-void color_to_bnw(char *redpicture_name, char *greenpicture_name, char *bluepicture_name, char *output_filename){
+void merge(char *redpicture_name, char *greenpicture_name, char *bluepicture_name, char *output_filename){
     int width, height, channels;
 
     unsigned char *redimg = stbi_load(redpicture_name, &width, &height, &channels, 0);
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
         argv++;
     }
     if(strcmp(redfilename,"") && strcmp(greenfilename,"") && strcmp(bluefilename,"") && strcmp(output_filename, "")){
-        color_to_bnw(redfilename, greenfilename, bluefilename, output_filename);
+        merge(redfilename, greenfilename, bluefilename, output_filename);
     }else{
         printf("args are not correct");
     }
