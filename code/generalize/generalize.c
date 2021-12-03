@@ -50,7 +50,7 @@ struct merge_args{
     char *output_filename;
 };
 
-
+pthread_mutex_t writelock;
 
 void separate_cannels(void *args){
     struct separate_chanels_args *myargs = (struct separate_chanels_args *)args;
@@ -149,7 +149,7 @@ void generalize(void *args){
 
     unsigned char *img = stbi_load(myargs->inputfilename, &width, &height, &channels, 0);
 
-    //printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, myargs->imgarg.height, channels);
+    //printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
 
     size_t img_size = width * height * channels;
     unsigned char *new_img = (unsigned char *)malloc(img_size);
@@ -161,24 +161,45 @@ void generalize(void *args){
     //set the ranges automaticly and have the color set in that range
     //set the ranges as it sees the colors. like if there are only 6 colors on the image
 
-    
     int index = 0;
     for(unsigned char *p = img; p < img + img_size; p += channels) {
         //new plan, get all the colors in a sorted list with indexes
         mypixels[index].index = index;
         mypixels[index].value = *(p + myargs->color_channel);
-        printf("%i\n", *(p + myargs->color_channel));
+        // printf("%i\n", *);
+
         index++;
     }
+    
+    // printf("before sort\n");
+    // for(int i = 0; i < width*height; i++){
+    //     printf("index : %i | value : %i\n",mypixels[i].index, mypixels[i].value);
+    // }
 
     //sort the list according to value
-
-
-
+    // struct pixel  sortedmypixels[width*height];
     struct pixel *sortedmypixels = mergeSort(mypixels, width*height);
 
+    // struct pixel temp;
+    // for(int i = 1; i <= (width*height); i++){
+    //     for(int j = i; j >= 0; j--){
+    //         if(mypixels[j-1].index){ //if value can be compared
+    //             if(mypixels[j].value < mypixels[j-1].value){ //swap values
+    //                 temp = mypixels[j];
+    //                 mypixels[j] = mypixels[j-1];
+    //                 mypixels[j-1] = temp;
+    //             }
+    //         }
+    //     }
+    // }
+    // struct pixel *sortedmypixels = mypixels;
 
-    int max_value = sortedmypixels[(width*height)-1].value;
+    // printf("after sort\n");
+    // for(int i = 0; i < width*height; i++){
+    //     printf("index : %i | value : %i\n",sortedmypixels[i].index, sortedmypixels[i].value);
+    // }
+
+    int max_value = sortedmypixels[(height*width)-1].value;
     int min_value = sortedmypixels[0].value;
     int interable_value = (width*height)/myargs->color_nums;
     int grouped_values[myargs->color_nums];
@@ -201,9 +222,14 @@ void generalize(void *args){
     }
 
     //now write to the image
+
     count = 0;
-    for(int i = 0; i < (width*height); i++){
+    for(int i = 0; i < (height*width); i++){
         new_img[(sortedmypixels[i].index*channels) + myargs->color_channel] = grouped_values[count];
+        // printf("%i\n", myargs->color_channel);
+        // if(myargs->color_channel == 0){
+        //     printf("red : %i\n", grouped_values[count]);
+        // }
         if(channels == 4){
             new_img[(sortedmypixels[i].index*channels) + 3] = img[(sortedmypixels[i].index*channels) + 3];
         }
@@ -212,9 +238,11 @@ void generalize(void *args){
         }
     }
 
+    pthread_mutex_lock(&writelock);
     stbi_write_jpg(myargs->outputfilename, width, height, channels, new_img, 100);
     stbi_image_free(img);
     stbi_image_free(new_img);
+    pthread_mutex_unlock(&writelock);
 }
 
 void merge(void *args){
@@ -248,7 +276,8 @@ void merge(void *args){
 
 void generalize_img_parallel(char *input_filename, char *output_filename, int colors_per_channel){
     //complete runner for generlizing a color 
-    
+    pthread_mutex_init(&writelock, NULL);
+
     pthread_t separate_cannels_pthread[CHANNEL_COUNT];
     pthread_t generalize_pthread[CHANNEL_COUNT];
 
@@ -261,6 +290,7 @@ void generalize_img_parallel(char *input_filename, char *output_filename, int co
     printf("separate channels\n");
     for(int i = 0; i < CHANNEL_COUNT; i++){
         struct_args[i].picture_name = input_filename;
+        // printf("%s\n", output_filename[i]);
         struct_args[i].output_filename = outputfilenames[i];
         struct_args[i].colorchanel = i;
         if(pthread_create(&separate_cannels_pthread[i], NULL, (void *)separate_cannels, (void*)&struct_args[i]) != 0){
@@ -273,7 +303,7 @@ void generalize_img_parallel(char *input_filename, char *output_filename, int co
     }
     printf("generalize\n");
     for(int i = 0; i < CHANNEL_COUNT; i++){
-        gargs[i].inputfilename = output_filename[i];
+        gargs[i].inputfilename = outputfilenames[i];
         gargs[i].outputfilename = outputfilenames2[i];
         gargs[i].color_channel = i;
         gargs[i].color_nums = colors_per_channel;
