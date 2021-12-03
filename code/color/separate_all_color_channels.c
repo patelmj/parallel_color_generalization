@@ -5,9 +5,9 @@
 #include <pthread.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#include "../stb/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
+#include "../stb/stb_image_write.h"
 
 #define CHANNEL_COUNT 3
 
@@ -18,7 +18,7 @@ struct separate_chanels_args{
 };
 
 
-int separate_cannels(void *args){
+void separate_cannels(void *args){
     struct separate_chanels_args *myargs = (struct separate_chanels_args *)args;
     // printf("%i\n", myargs->colorchanel);
     int width, height, channels;
@@ -69,9 +69,9 @@ int main(int argc, char *argv[]){
         pthread_t separate_cannels_pthread[CHANNEL_COUNT];
         struct separate_chanels_args struct_args[3];
 
-        char *outputfilenames[] = {"../data/redchanel.png", "../data/greenchanel.png", "../data/bluechanel.png"};
+        char *outputfilenames[] = {"../../data/redchanel.png", "../../data/greenchanel.png", "../../data/bluechanel.png"};
         for(int i = 0; i < CHANNEL_COUNT; i++){
-            struct_args[i].picture_name = "../data/testimage.png";
+            struct_args[i].picture_name = filename;
             struct_args[i].output_filename = outputfilenames[i];
             struct_args[i].colorchanel = i;
             if(pthread_create(&separate_cannels_pthread[i], NULL, (void *)separate_cannels, (void*)&struct_args[i]) != 0){
