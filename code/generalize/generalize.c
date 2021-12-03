@@ -34,7 +34,6 @@ struct pixel{
 };
 
 struct generalize_args{
-    struct img imgarg;
     char *outputfilename;
     char *inputfilename;
     int color_nums;
@@ -145,18 +144,18 @@ struct pixel* mergeSort(struct pixel *input, int size){
 
 void generalize(void *args){
     struct generalize_args *myargs = (struct generalize_args *)args;
-    // int width, height, channels;
+    int width, height, channels;
     // const char *fname = picture_name;
 
-    unsigned char *img = stbi_load(myargs->inputfilename, &myargs->imgarg.width, &myargs->imgarg.height, &myargs->imgarg.channels, 0);
+    unsigned char *img = stbi_load(myargs->inputfilename, &width, &height, &channels, 0);
 
     //printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, myargs->imgarg.height, channels);
 
-    size_t img_size = myargs->imgarg.width * myargs->imgarg.height * myargs->imgarg.channels;
+    size_t img_size = width * height * channels;
     unsigned char *new_img = (unsigned char *)malloc(img_size);
 
 
-    struct pixel mypixels[myargs->imgarg.width*myargs->imgarg.height];
+    struct pixel mypixels[width*height];
     //set of range of colors on what it should be.
     //two ways i can see on doing this,
     //set the ranges automaticly and have the color set in that range
@@ -164,7 +163,7 @@ void generalize(void *args){
 
     
     int index = 0;
-    for(unsigned char *p = img; p < img + img_size; p += myargs->imgarg.channels) {
+    for(unsigned char *p = img; p < img + img_size; p += channels) {
         //new plan, get all the colors in a sorted list with indexes
         mypixels[index].index = index;
         mypixels[index].value = *(p + myargs->color_channel);
@@ -173,21 +172,21 @@ void generalize(void *args){
     }
 
     //sort the list according to value
-    struct pixel *sortedmypixels = mergeSort(mypixels, myargs->imgarg.width*myargs->imgarg.height);
 
-    for(int i = 0; i < myargs->imgarg.width*myargs->imgarg.height; i++){
-        printf("index : %i | value : %i\n",sortedmypixels[i].index, sortedmypixels[i].value);
-    }
 
-    int max_value = sortedmypixels[(myargs->imgarg.height*myargs->imgarg.width)-1].value;
+
+    struct pixel *sortedmypixels = mergeSort(mypixels, width*height);
+
+
+    int max_value = sortedmypixels[(width*height)-1].value;
     int min_value = sortedmypixels[0].value;
-    int interable_value = (myargs->imgarg.width*myargs->imgarg.height)/myargs->color_nums;
+    int interable_value = (width*height)/myargs->color_nums;
     int grouped_values[myargs->color_nums];
 
     int count = 0;
     int average = 0;
     int color_count = 0;
-    for(int i = 0; i < (myargs->imgarg.width*myargs->imgarg.height); i++){
+    for(int i = 0; i < (width*height); i++){
         //i need to sum up all of the values in the color range
         average = average + sortedmypixels[i].value;
         count++;
@@ -203,17 +202,17 @@ void generalize(void *args){
 
     //now write to the image
     count = 0;
-    for(int i = 0; i < (myargs->imgarg.height*myargs->imgarg.width); i++){
-        new_img[(sortedmypixels[i].index*myargs->imgarg.channels) + myargs->color_channel] = grouped_values[count];
-        if(myargs->imgarg.channels == 4){
-            new_img[(sortedmypixels[i].index*myargs->imgarg.channels) + 3] = img[(sortedmypixels[i].index*myargs->imgarg.channels) + 3];
+    for(int i = 0; i < (width*height); i++){
+        new_img[(sortedmypixels[i].index*channels) + myargs->color_channel] = grouped_values[count];
+        if(channels == 4){
+            new_img[(sortedmypixels[i].index*channels) + 3] = img[(sortedmypixels[i].index*channels) + 3];
         }
         if(i%interable_value == 0 && i != 0){
             count++;
         }
     }
 
-    stbi_write_jpg(myargs->outputfilename, myargs->imgarg.width, myargs->imgarg.height, myargs->imgarg.channels, new_img, 100);
+    stbi_write_jpg(myargs->outputfilename, width, height, channels, new_img, 100);
     stbi_image_free(img);
     stbi_image_free(new_img);
 }
@@ -278,10 +277,7 @@ void generalize_img_parallel(char *input_filename, char *output_filename, int co
         gargs[i].outputfilename = outputfilenames2[i];
         gargs[i].color_channel = i;
         gargs[i].color_nums = colors_per_channel;
-        gargs[i].imgarg.width = struct_args[i].results.width;
-        gargs[i].imgarg.height = struct_args[i].results.height;
-        gargs[i].imgarg.channels = struct_args[i].results.channels;
-        printf("result %i : width : %i : height : %i\n", i, gargs[i].imgarg.width, gargs[i].imgarg.height);
+        // printf("result %i : width : %i : height : %i\n", i, gargs[i].imgarg.width, gargs[i].imgarg.height);
         if(pthread_create(&generalize_pthread[i], NULL, (void *)generalize, (void*)&gargs[i]) != 0){
             //thread creation did not happen;
             printf("error in thread cereation\n");
