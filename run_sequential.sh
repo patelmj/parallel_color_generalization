@@ -6,8 +6,8 @@ gcc $path/code/color/generalize_color.c -lm -o generalize_color
 gcc $path/code/color/merge_colors.c -lm -o merge_colors
 # run separate_all_color_channels
 $path/separate_color_channels -f $path/data/testimage.png -o $path/redchanel.png -c 0 
-$path/separate_color_channels -f $path/data/testimage.png -o $path/bluechanel.png -c 1 
-$path/separate_color_channels -f $path/data/testimage.png -o $path/greenchanel.png -c 2 
+$path/separate_color_channels -f $path/data/testimage.png -o $path/bluechanel.png -c 2 
+$path/separate_color_channels -f $path/data/testimage.png -o $path/greenchanel.png -c 1 
 
 # now for the generalize_color, this will be paralell processed
 $path/generalize_color -f $path/redchanel.png -o $path/redchanelgen.png -c $color_nums -h 0

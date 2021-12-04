@@ -7,9 +7,9 @@ gcc $path/code/color/merge_colors.c -lm -o merge_colors
 # run separate_all_color_channels
 $path/separate_color_channels -f $path/data/testimage.png -o $path/redchanel.png -c 0 &
 redid=$!
-$path/separate_color_channels -f $path/data/testimage.png -o $path/bluechanel.png -c 1 &
+$path/separate_color_channels -f $path/data/testimage.png -o $path/greenchanel.png -c 1 &
 greenid=$!
-$path/separate_color_channels -f $path/data/testimage.png -o $path/greenchanel.png -c 2 &
+$path/separate_color_channels -f $path/data/testimage.png -o $path/bluechanel.png -c 2 &
 blueid=$!
 wait $redid
 wait $blueid
