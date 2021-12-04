@@ -44,10 +44,7 @@ struct merge_args{
     char *redfilename;
     char *greenfilename;
     char *bluefilename;
-    struct img redchan;
-    struct img greenchan;
-    struct img bluechan;
-    char *output_filename;
+    char *outputfilename;
 };
 
 pthread_mutex_t writelock;
@@ -154,7 +151,6 @@ void generalize(void *args){
     size_t img_size = width * height * channels;
     unsigned char *new_img = (unsigned char *)malloc(img_size);
 
-
     struct pixel mypixels[width*height];
     //set of range of colors on what it should be.
     //two ways i can see on doing this,
@@ -248,29 +244,32 @@ void generalize(void *args){
 void merge(void *args){
     struct merge_args *myargs = (struct merge_args *)args;
     int width, height, channels;
-
+    
     unsigned char *redimg = stbi_load(myargs->redfilename, &width, &height, &channels, 0);
     unsigned char *greenimg = stbi_load(myargs->greenfilename, &width, &height, &channels, 0);
     unsigned char *blueimg = stbi_load(myargs->bluefilename, &width, &height, &channels, 0);
 
     //printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
 
-    size_t img_size = myargs->redchan.width * myargs->redchan.height * myargs->redchan.channels;
+    size_t img_size = width * height * channels;
     unsigned char *new_img = (unsigned char *)malloc(img_size);
 
     for(unsigned char *r = redimg, *g = greenimg, *b = blueimg, *pg = new_img; r < redimg + img_size;
-    r += myargs->redchan.channels, g += myargs->redchan.channels, b += myargs->redchan.channels, pg += myargs->redchan.channels) {
+    r += channels, g += channels, b += channels, pg += channels) {
         //this will only work if the other chanels of the color picutres are arrays of 0's
         *(pg + 0) = *(r + 0);
         *(pg + 1) = *(g + 1);
         *(pg + 2) = *(b + 2);
-        // printf("red : %i | green : %i | blue : %i\n", *(r+0), *(g+1) ,*(b+2));
-        if(myargs->redchan.channels == 4){ //freak out!!!
+        printf("red : %i | green : %i | blue : %i\n", *(r+0), *(g+1) ,*(b+2));
+        if(channels == 4){ //freak out!!!
             *(pg + 3) = *(r + 3);
         }
     }
 
-    stbi_write_jpg(myargs->output_filename, myargs->redchan.width, myargs->redchan.height, myargs->redchan.channels, new_img, 100);
+    stbi_write_jpg(myargs->outputfilename, width, height, channels, new_img, 100);
+    stbi_image_free(redimg);
+    stbi_image_free(greenimg);
+    stbi_image_free(blueimg);
     stbi_image_free(new_img);
 }
 
@@ -302,6 +301,7 @@ void generalize_img_parallel(char *input_filename, char *output_filename, int co
         pthread_join(separate_cannels_pthread[i], NULL);
     }
     printf("generalize\n");
+    
     for(int i = 0; i < CHANNEL_COUNT; i++){
         gargs[i].inputfilename = outputfilenames[i];
         gargs[i].outputfilename = outputfilenames2[i];
@@ -317,10 +317,21 @@ void generalize_img_parallel(char *input_filename, char *output_filename, int co
     for(int i = 0; i < CHANNEL_COUNT; i++){
         pthread_join(generalize_pthread[i], NULL);
     }
-    // printf("merge\n");
-    // margs->redchan = gargs[0].outputimg;
-    // margs->greenchan = gargs[1].outputimg;
-    // margs->bluechan = gargs[2].outputimg;
-    // margs->output_filename = output_filename;
-    // merge(margs);
+    // printf("%s\n", outputfilenames2[0]);
+    printf("merge\n");
+    
+    margs->redfilename = (char *)malloc(sizeof(char) * 100);
+    margs->greenfilename = (char *)malloc(sizeof(char) * 100);
+    margs->bluefilename = (char *)malloc(sizeof(char) * 100);
+
+    margs->redfilename = outputfilenames2[0];
+    margs->greenfilename = outputfilenames2[1];
+    margs->bluefilename = outputfilenames2[2];
+    margs->outputfilename = output_filename;
+
+    printf("%s\n", margs->redfilename);
+    printf("%s\n", margs->bluefilename);
+    printf("%s\n", margs->greenfilename);
+    printf("%s\n", margs->outputfilename);
+    merge(margs);
 }

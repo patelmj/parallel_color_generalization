@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
         pthread_t separate_cannels_pthread[CHANNEL_COUNT];
         struct separate_chanels_args struct_args[3];
 
-        char *outputfilenames[] = {"../../data/redchanel.png", "../../data/greenchanel.png", "../../data/bluechanel.png"};
+        char *outputfilenames[] = {"redchanel.png", "greenchanel.png", "bluechanel.png"};
         for(int i = 0; i < CHANNEL_COUNT; i++){
             struct_args[i].picture_name = filename;
             struct_args[i].output_filename = outputfilenames[i];

@@ -70,7 +70,7 @@ struct pixel* mergeSort(struct pixel *input, int size){
                 leftlist++;
             }
             count++;
-            printf("%i\n", return_list->value);
+            // printf("%i\n", return_list->value);
         }
         return return_list;
     }else if(size == 1){
